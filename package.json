@@ -3,7 +3,7 @@
   "scripts": {
     "dev": "next -p 4000",
     "build": "next build",
-    "start": "next start"
+    "start": "next start -p 4000"
   },
   "dependencies": {
     "@apollo/client": "^3.4.17",

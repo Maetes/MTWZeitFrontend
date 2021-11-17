@@ -2,7 +2,7 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { ApolloProvider } from '@apollo/client';
 import theme from '../theme';
 import { AppProps } from 'next/app';
-import { useApollo } from './lib/apolloClient';
+import { useApollo } from '../lib/apolloClient';
 
 import '../DatePickerWrapper.css';
 import '../../node_modules/react-datepicker/dist/react-datepicker.css';

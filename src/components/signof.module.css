@@ -1,0 +1,6 @@
+.sigcanvas {
+  border: 2px dotted #cccccc;
+  border-radius: 15px;
+  cursor: crosshair;
+  display: block;
+}

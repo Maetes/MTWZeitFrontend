@@ -9,7 +9,7 @@ export const TimeSelector = ({ date, setDate }) => {
       timeFormat='HH:mm'
       timeIntervals={15}
       timeCaption='time'
-      dateFormat='d. MMMM yyyy HH:mm'
+      dateFormat='dd.MM.yyyy HH:mm'
     />
   );
 };

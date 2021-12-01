@@ -14,6 +14,7 @@ function DatePicker(props: ReactDatePickerProps) {
         isClearable={isClearable}
         showPopperArrow={showPopperArrow}
         className='react-datapicker__input-text' //input is white by default and there is no already defined class for it so I created a new one
+        dateFormat='dd.MM.yyyy'
         {...rest}
       />
     </div>

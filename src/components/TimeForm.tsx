@@ -1,4 +1,4 @@
-import { gql, useMutation } from '@apollo/client';
+import { gql, useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import {
   Alert,
   AlertDescription,
@@ -28,6 +28,8 @@ import { DatePicker } from './DatePickerWrapper/DatePickerWrapper';
 import { SignOf } from './SignOf';
 import { useDisclosure } from '@chakra-ui/react';
 import { TimeSelector } from './TimeSelector';
+import { AsyncCreatableSelect } from 'chakra-react-select';
+import { stringify } from 'querystring';
 
 interface MUTTIME {
   createSignofInput: {
@@ -54,6 +56,14 @@ export const CREATE_SIGNOF = gql`
   }
 `;
 
+export const GET_ALL_CUSTOMERS = gql`
+  query SignofContain($kd: String!) {
+    signofContain(kd: $kd) {
+      kunde
+    }
+  }
+`;
+
 export const TimeForm = (props: HTMLChakraProps<'form'>) => {
   const {
     isOpen: isOpenError,
@@ -68,19 +78,29 @@ export const TimeForm = (props: HTMLChakraProps<'form'>) => {
   const [save, { loading, data, error }] = useMutation<any, MUTTIME>(
     CREATE_SIGNOF
   );
+  const { client } = useQuery(GET_ALL_CUSTOMERS);
+  const [trueFalse, setTrueFalse] = useState(false);
+  const [selectState, setSelectState] = useState('');
+
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [endTime, setEndTime] = useState<Date | null>(null);
 
-  const handleKunde = (e) => {
-    setKunde(e.target.value);
+  const fetchCustomers = async (inputSelected: string) => {
+    const res = await client.query({
+      query: GET_ALL_CUSTOMERS,
+      variables: { kd: inputSelected },
+    });
+    if (res.data && res.data.signofContain) {
+      return res.data.signofContain.map((a) => ({
+        label: a.kunde,
+        value: a.kunde,
+      }));
+    }
+    return [];
   };
 
   const handleClear = () => {
     canvas.current.width = canvas.current.width;
-    setKunde('');
-    setDate(new Date());
-    setEndTime(null);
-    setStartTime(null);
   };
 
   return (
@@ -127,13 +147,6 @@ export const TimeForm = (props: HTMLChakraProps<'form'>) => {
           e.preventDefault();
           var dataUrl = canvas.current.toDataURL();
           try {
-            console.log(
-              date,
-              kunde,
-              new Date(startTime.getTime()).toString(),
-              new Date(endTime.getTime()).toString(),
-              (endTime.getTime() - startTime.getTime()) / 3600000
-            );
             const dolo = async () =>
               await save({
                 variables: {
@@ -143,7 +156,11 @@ export const TimeForm = (props: HTMLChakraProps<'form'>) => {
                     von: new Date(startTime.getTime()).toString(),
                     bis: new Date(endTime.getTime()).toString(),
                     stunden:
-                      (endTime.getTime() - startTime.getTime()) / 3600000,
+                      Math.round(
+                        ((endTime.getTime() - startTime.getTime()) / 3600000 +
+                          Number.EPSILON) *
+                          100
+                      ) / 100,
                     unterschrift: dataUrl,
                   },
                 },
@@ -170,13 +187,14 @@ export const TimeForm = (props: HTMLChakraProps<'form'>) => {
 
           <FormControl id='kunde'>
             <FormLabel>Kunde</FormLabel>
-            <Input
+            <AsyncCreatableSelect
+              cacheOption
+              // defaultOptions
               name='kunde'
-              type='text'
-              autoComplete='datum'
-              required
-              onChange={handleKunde}
-              value={kunde}
+              loadOptions={fetchCustomers}
+              placeholder='Kunde auswählen oder erstellen'
+              closeMenuOnSelect={true}
+              // onChange={(e) => fetchCustomers(e)}
             />
           </FormControl>
           <Flex direction={'row'} justifyContent={'space-between'}>
@@ -187,7 +205,7 @@ export const TimeForm = (props: HTMLChakraProps<'form'>) => {
               </FormControl>
             </Box>
             {/* <Spacer /> */}
-            <Box>
+            <Box width={'15rem'}>
               <FormControl id='endZeit'>
                 <FormLabel>Endzeit</FormLabel>
                 <TimeSelector date={endTime} setDate={setEndTime} />
@@ -196,7 +214,17 @@ export const TimeForm = (props: HTMLChakraProps<'form'>) => {
           </Flex>
 
           <SignOf canvasREF={canvas} />
-
+          {startTime && endTime && (
+            <Text>
+              {`Stunden: ` +
+                Math.round(
+                  ((endTime.getTime() - startTime.getTime()) / 3600000 +
+                    Number.EPSILON) *
+                    100
+                ) /
+                  100}
+            </Text>
+          )}
           <Button colorScheme='blue' type='submit'>
             Speichern {loading && <Spinner />}
           </Button>

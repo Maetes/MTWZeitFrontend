@@ -12,8 +12,8 @@ function createApolloClient() {
   return new ApolloClient({
     ssrMode: typeof window === 'undefined',
     link: new HttpLink({
-      uri: 'https://sgb.martinm.tech/graphql',
-      // uri: 'http://localhost:4000/graphql',
+      // uri: 'https://sgb.martinm.tech/graphql',
+      uri: 'http://localhost:4000/graphql',
       credentials: 'same-origin', // Additional fetch() options like `credentials` or `headers`
     }),
     cache: new InMemoryCache({

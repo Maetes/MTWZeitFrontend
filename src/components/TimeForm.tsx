@@ -8,6 +8,7 @@ import {
   Button,
   chakra,
   CloseButton,
+  Flex,
   FormControl,
   FormLabel,
   HTMLChakraProps,
@@ -17,6 +18,7 @@ import {
   NumberInput,
   NumberInputField,
   NumberInputStepper,
+  Spacer,
   Spinner,
   Stack,
   Text,
@@ -25,7 +27,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { DatePicker } from './DatePickerWrapper/DatePickerWrapper';
 import { SignOf } from './SignOf';
 import { useDisclosure } from '@chakra-ui/react';
-import { SSL_OP_NO_COMPRESSION } from 'constants';
+import { TimeSelector } from './TimeSelector';
+
+interface MUTTIME {
+  createSignofInput: {
+    datum: Date;
+    bis: string;
+    von: string;
+    unterschrift: string;
+    kunde: string;
+    stunden: number;
+  };
+}
 
 export const CREATE_SIGNOF = gql`
   mutation CreateSignof($createSignofInput: CreateSignofInput!) {
@@ -52,33 +65,22 @@ export const TimeForm = (props: HTMLChakraProps<'form'>) => {
   const canvas = useRef(null);
   const [kunde, setKunde] = useState('');
   const [date, setDate] = useState(new Date());
-  const [save, { loading, data, error }] = useMutation(CREATE_SIGNOF);
-  const [stunde, setStunde] = useState(0);
-  const [vonBis, setVonBis] = useState({
-    vonStunde: 0,
-    vonMinute: 0,
-    bisStunde: 0,
-    bisMinute: 0,
-  });
+  const [save, { loading, data, error }] = useMutation<any, MUTTIME>(
+    CREATE_SIGNOF
+  );
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [endTime, setEndTime] = useState<Date | null>(null);
 
   const handleKunde = (e) => {
     setKunde(e.target.value);
-  };
-
-  const handleHours = (what) => (e) => {
-    setVonBis({ ...vonBis, [what]: parseInt(e) });
   };
 
   const handleClear = () => {
     canvas.current.width = canvas.current.width;
     setKunde('');
     setDate(new Date());
-    setVonBis({
-      vonStunde: 0,
-      vonMinute: 0,
-      bisStunde: 0,
-      bisMinute: 0,
-    });
+    setEndTime(null);
+    setStartTime(null);
   };
 
   return (
@@ -119,26 +121,29 @@ export const TimeForm = (props: HTMLChakraProps<'form'>) => {
           />
         </Alert>
       )}
+
       <chakra.form
         onSubmit={(e) => {
           e.preventDefault();
           var dataUrl = canvas.current.toDataURL();
           try {
+            console.log(
+              date,
+              kunde,
+              new Date(startTime.getTime()).toString(),
+              new Date(endTime.getTime()).toString(),
+              (endTime.getTime() - startTime.getTime()) / 3600000
+            );
             const dolo = async () =>
               await save({
                 variables: {
                   createSignofInput: {
                     datum: date,
                     kunde: kunde,
-                    von:
-                      String(vonBis.vonStunde) + ':' + String(vonBis.vonMinute),
-                    bis:
-                      String(vonBis.bisStunde) + ':' + String(vonBis.bisMinute),
+                    von: new Date(startTime.getTime()).toString(),
+                    bis: new Date(endTime.getTime()).toString(),
                     stunden:
-                      ((vonBis.bisStunde - vonBis.vonStunde) * 60 +
-                        (vonBis.bisMinute - vonBis.vonMinute)) /
-                      60,
-
+                      (endTime.getTime() - startTime.getTime()) / 3600000,
                     unterschrift: dataUrl,
                   },
                 },
@@ -174,68 +179,22 @@ export const TimeForm = (props: HTMLChakraProps<'form'>) => {
               value={kunde}
             />
           </FormControl>
-          <FormLabel>Zeit</FormLabel>
-          <Stack direction={'row'}>
-            <NumberInput
-              size='lg'
-              maxW={24}
-              min={0}
-              max={24}
-              onChange={handleHours('vonStunde')}
-              value={vonBis.vonStunde}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-            <NumberInput
-              size='lg'
-              maxW={24}
-              min={0}
-              max={59}
-              onChange={handleHours('vonMinute')}
-              value={vonBis.vonMinute}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
+          <Flex direction={'row'} justifyContent={'space-between'}>
+            <Box width={'15rem'}>
+              <FormControl id='startTime'>
+                <FormLabel>Startzeit</FormLabel>
+                <TimeSelector date={startTime} setDate={setStartTime} />
+              </FormControl>
+            </Box>
+            {/* <Spacer /> */}
+            <Box>
+              <FormControl id='endZeit'>
+                <FormLabel>Endzeit</FormLabel>
+                <TimeSelector date={endTime} setDate={setEndTime} />
+              </FormControl>
+            </Box>
+          </Flex>
 
-            <Text fontSize='3xl'>-</Text>
-
-            <NumberInput
-              size='lg'
-              maxW={24}
-              min={0}
-              max={24}
-              onChange={handleHours('bisStunde')}
-              value={vonBis.bisStunde}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-            <NumberInput
-              size='lg'
-              maxW={24}
-              min={0}
-              max={59}
-              onChange={handleHours('bisMinute')}
-              value={vonBis.bisMinute}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          </Stack>
           <SignOf canvasREF={canvas} />
 
           <Button colorScheme='blue' type='submit'>

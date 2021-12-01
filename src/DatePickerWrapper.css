@@ -43,6 +43,7 @@
   font-family: unset;
   font-size: 0.9rem;
   border-color: var(--light-gray);
+  display: flex !important;
 }
 
 .react-datepicker-wrapper,
@@ -55,7 +56,7 @@
   padding-left: 1rem;
   padding-right: 1rem;
   height: 2.5rem;
-  border-radius: 0.25rem;
+  border-radius: var(--chakra-radii-md);
   border: 1px solid;
   border-color: var(--light-gray);
 }

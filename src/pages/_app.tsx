@@ -6,6 +6,7 @@ import { useApollo } from '../lib/apolloClient';
 
 import '../DatePickerWrapper.css';
 import '../../node_modules/react-datepicker/dist/react-datepicker.css';
+import { RecoilRoot } from 'recoil';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const apolloClient = useApollo(pageProps);

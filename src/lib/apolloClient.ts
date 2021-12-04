@@ -15,6 +15,7 @@ function createApolloClient() {
       uri: 'https://sgb.martinm.tech/graphql',
       // uri: 'http://localhost:4000/graphql',
       credentials: 'same-origin', // Additional fetch() options like `credentials` or `headers`
+      headers: { 'Access-Control-Allow-Origin': '*' },
     }),
     cache: new InMemoryCache({
       // typePolicies: {

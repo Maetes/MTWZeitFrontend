@@ -124,6 +124,7 @@ export const SignOf = ({ canvasREF }) => {
   };
 
   const handleTouchStart = (e) => {
+    e.preventDefault();
     setDrawing(true);
     setMousePos(getTouchPos(e));
     var touch = e.touches[0];
@@ -132,6 +133,7 @@ export const SignOf = ({ canvasREF }) => {
   };
 
   const handleTouchMove = (e) => {
+    e.preventDefault();
     var touch = e.touches[0];
     const art = getMousePos(touch);
     setMousePos(art);
